@@ -7,16 +7,10 @@ local memory = require "memory"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 
-local function variableargs(...)
-    local args = {}
-    for i = 1, select("#", ...) do
-        args[i] = select(i, ...)
-    end
-    return args
-end
-
-local args = variableargs(...)
-local ip, port = args[1] or "127.0.0.1", args[2] or 8888
+local arg = table.pack(...)
+assert(arg.n <= 2)
+local ip = (arg.n == 2 and arg[1] or "127.0.0.1")
+local port = tonumber(arg[arg.n])
 
 local COMMAND = {}
 
@@ -114,7 +108,7 @@ end
 
 skynet.start(function()
 	local listen_socket = socket.listen (ip, port)
-	skynet.error(string.format("Start debug console at %s:%d", ip, port))
+	skynet.error("Start debug console at " .. ip .. ":" .. port)
 	socket.start(listen_socket , function(id, addr)
 		local function print(...)
 			local t = { ... }
