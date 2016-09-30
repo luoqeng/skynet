@@ -22,22 +22,22 @@ $(LUA_STATICLIB) :
 JEMALLOC_STATICLIB := 3rd/jemalloc/lib/libjemalloc_pic.a
 JEMALLOC_INC := 3rd/jemalloc/include/jemalloc
 
-all : jemalloc
+all : init3rd jemalloc
 	
-.PHONY : jemalloc lua-cjson update3rd
+.PHONY : jemalloc init3rd update3rd
 
 MALLOC_STATICLIB := $(JEMALLOC_STATICLIB)
 
 $(JEMALLOC_STATICLIB) : 3rd/jemalloc/Makefile
-	cd 3rd/jemalloc && $(MAKE) CC=$(CC) 
-
-3rd/jemalloc/autogen.sh :
-	git submodule update --init
+	cd 3rd/jemalloc && $(MAKE) CC=$(CC)
 
 3rd/jemalloc/Makefile : | 3rd/jemalloc/autogen.sh
 	cd 3rd/jemalloc && ./autogen.sh --with-jemalloc-prefix=je_ --disable-valgrind
 
 jemalloc : $(MALLOC_STATICLIB)
+
+init3rd :
+	git submodule update --init
 
 update3rd :
 	rm -rf 3rd/jemalloc 3rd/lua-cjson && git submodule update --init
