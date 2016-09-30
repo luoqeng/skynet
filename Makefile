@@ -24,7 +24,7 @@ JEMALLOC_INC := 3rd/jemalloc/include/jemalloc
 
 all : jemalloc
 	
-.PHONY : jemalloc update3rd
+.PHONY : jemalloc lua-cjson update3rd
 
 MALLOC_STATICLIB := $(JEMALLOC_STATICLIB)
 
@@ -40,7 +40,7 @@ $(JEMALLOC_STATICLIB) : 3rd/jemalloc/Makefile
 jemalloc : $(MALLOC_STATICLIB)
 
 update3rd :
-	rm -rf 3rd/jemalloc && git submodule update --init
+	rm -rf 3rd/jemalloc 3rd/lua-cjson && git submodule update --init
 
 # skynet
 
