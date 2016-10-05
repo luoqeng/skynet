@@ -48,7 +48,7 @@ CSERVICE = snlua logger gate harbor
 LUA_CLIB = skynet socketdriver bson mongo md5 netpack \
   clientsocket memory profile multicast \
   cluster crypt sharedata stm sproto lpeg \
-  mysqlaux debugchannel cjson
+  mysqlaux debugchannel cjson lsqlite3
 
 SKYNET_SRC = skynet_main.c skynet_handle.c skynet_module.c skynet_mq.c \
   skynet_server.c skynet_start.c skynet_timer.c skynet_error.c \
@@ -132,6 +132,9 @@ $(LUA_CLIB_PATH)/debugchannel.so : lualib-src/lua-debugchannel.c | $(LUA_CLIB_PA
 
 $(LUA_CLIB_PATH)/cjson.so : 3rd/lua-cjson/fpconv.c 3rd/lua-cjson/strbuf.c 3rd/lua-cjson/lua_cjson.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I3rd/lua-cjson $^ -o $@
+
+$(LUA_CLIB_PATH)/lsqlite3.so : lualib-src/lsqlite3.c lualib-src/sqlite3.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -Ilualib-src $^ -o $@
 
 clean :
 	rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
