@@ -1,9 +1,0 @@
-thread = 8
-logger = nil
-harbor = 0
-start = "testlsqlite3"
-bootstrap = "snlua bootstrap"	-- The service for bootstrap
-luaservice = "./service/?.lua;./test/?.lua"
-lualoader = "lualib/loader.lua"
-lua_cpath = "./luaclib/?.so"
-cpath = "./cservice/?.so"
