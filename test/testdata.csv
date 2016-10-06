@@ -1,3 +1,5 @@
-alpha,bravo,charlie
-ONE,two,3
-four,five,6
+id,name,age,gender,address
+number,string,number,number,string
+1,Jack,20,1,"Taiping Road, Haidian District, Beijing."
+2,Lily,18,2,"Yanyu Road, Nanping District, Chongqing."
+3,Tom,,2,
