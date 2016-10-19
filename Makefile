@@ -133,8 +133,8 @@ $(LUA_CLIB_PATH)/debugchannel.so : lualib-src/lua-debugchannel.c | $(LUA_CLIB_PA
 $(LUA_CLIB_PATH)/cjson.so : 3rd/lua-cjson/fpconv.c 3rd/lua-cjson/strbuf.c 3rd/lua-cjson/lua_cjson.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I3rd/lua-cjson $^ -o $@
 
-$(LUA_CLIB_PATH)/webclient.so : 3rd/lua-webclient/webclient.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
+$(LUA_CLIB_PATH)/webclient.so : lualib-src/lua-webclient.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -lcurl $^ -o $@
 
 clean :
 	rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so

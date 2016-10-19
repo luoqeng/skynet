@@ -4,6 +4,3 @@
 [submodule "3rd/lua-cjson"]
 	path = 3rd/lua-cjson
 	url = https://github.com/mpx/lua-cjson.git
-[submodule "3rd/lua-webclient"]
-	path = 3rd/lua-webclient
-	url = https://github.com/dpull/lua-webclient
