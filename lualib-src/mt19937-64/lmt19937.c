@@ -38,7 +38,7 @@ lmtrandi(lua_State *L) {
 	if (args < 2) {
 		return luaL_error(L, "mt19937.randi need 2 numbers for a range.");
 	}
-	uint64_t a = luaL_checkinteger(L, 1);
+	lua_Integer a = luaL_checkinteger(L, 1);
 	lua_Integer b = luaL_checkinteger(L, 2);
 	lua_Integer from = a < b ? a : b;
 	lua_Integer to = a > b ? a : b;
