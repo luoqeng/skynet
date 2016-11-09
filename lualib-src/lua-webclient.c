@@ -328,8 +328,16 @@ static int url_encoding(lua_State* l)
     return 1;
 }
 
+static int get_curl_version(lua_State* l)
+{
+    const char* ver = curl_version();
+    lua_pushstring(l, ver);
+    return 1;
+}
+
 luaL_Reg webclient_createfuns[] = {
     { "create", webclient_create },
+    { "curl_version", get_curl_version },
     { NULL, NULL }
 };
 
