@@ -141,7 +141,7 @@ $(LUA_CLIB_PATH)/mt19937.so : lualib-src/mt19937-64/mt19937-64.c lualib-src/mt19
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
 
 $(LUA_CLIB_PATH)/snowflake.so : lualib-src/lua-snowflake.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
+	$(CC) $(CFLAGS) $(SHARED) -Iskynet-src $^ -o $@
 
 clean :
 	rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so

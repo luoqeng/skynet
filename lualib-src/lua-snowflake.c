@@ -2,25 +2,27 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include "spinlock.h"
 
 #include <lua.h>
 #include <lauxlib.h>
-
-#define LUA_SNOWFLAKE_METATABLE ("__lua_snowflake")
 
 #define MAX_INDEX_VAL       0x0fff
 #define MAX_WORKID_VAL      0x03ff
 #define MAX_TIMESTAMP_VAL   0x01ffffffffff
 
+#define __atomic_read(var)        __sync_fetch_and_add(&(var), 0)
+#define __atomic_set(var, val)    __sync_lock_test_and_set(&(var), (val))
+
 typedef struct _t_ctx {
-    pthread_mutex_t sync_policy;
     int64_t last_timestamp;
     int32_t work_id;
     int16_t index;
 } ctx_t;
 
-static int g_inited = 0;
-static ctx_t g_ctx;
+static volatile int g_inited = 0;
+static ctx_t g_ctx = { 0, 0, 0 };
+static struct spinlock sync_policy = { 0 };
 
 static int64_t
 get_timestamp() {
@@ -41,10 +43,10 @@ wait_next_msec() {
 
 static uint64_t
 next_id() {
-    if (!g_inited) {
+    if (!__atomic_read(g_inited)) {
         return -1;
     }
-    pthread_mutex_lock(&g_ctx.sync_policy);
+    spinlock_lock(&sync_policy);
     int64_t current_timestamp = get_timestamp();
     if (current_timestamp == g_ctx.last_timestamp) {
         if (g_ctx.index < MAX_INDEX_VAL) {
@@ -61,30 +63,21 @@ next_id() {
         ((g_ctx.work_id & MAX_WORKID_VAL) << 12) | 
         (g_ctx.index & MAX_INDEX_VAL)
     );
-    pthread_mutex_unlock(&g_ctx.sync_policy);
+    spinlock_unlock(&sync_policy);
     return nextid;
 }
 
 static int
 init(uint16_t work_id) {
-    if (g_inited) {
+    if (__atomic_read(g_inited)) {
         return 0;
     }
+    spinlock_lock(&sync_policy);
     g_ctx.work_id = work_id;
     g_ctx.index = 0;
-    if (pthread_mutex_init(&g_ctx.sync_policy, NULL)) {
-        return -1;
-    }
-    g_inited = 1;
+    __atomic_set(g_inited, 1);
+    spinlock_unlock(&sync_policy);
     return 0;
-}
-
-static void
-fini() {
-    if (g_inited) {
-        pthread_mutex_destroy(&g_ctx.sync_policy);
-        g_inited = 0;
-    }
 }
 
 static int
@@ -111,34 +104,14 @@ lnextid(lua_State* l) {
     return 1;
 }
 
-static int
-lfini(lua_State* l) {
-    fini();
-    return 0;
-}
-
-luaL_Reg mtlib[] = {
-    { "__gc", lfini },
-    { NULL, NULL }
-};
-
-luaL_Reg lib[] = {
-    { "init", linit },
-    { "next_id", lnextid },
-    { NULL, NULL }
-};
-
 int
 luaopen_snowflake(lua_State* l) {
     luaL_checkversion(l);
-    if (luaL_newmetatable(l, LUA_SNOWFLAKE_METATABLE)) {
-        lua_pushvalue(l, -1);
-        lua_setfield(l, -2, "__index");
-        luaL_setfuncs(l, mtlib, 0);
-        lua_pop(l, 1);
-    }
+    luaL_Reg lib[] = {
+        { "init", linit },
+        { "next_id", lnextid },
+        { NULL, NULL }
+    };
     luaL_newlib(l, lib);
-    luaL_getmetatable(l, LUA_SNOWFLAKE_METATABLE);
-    lua_setmetatable(l, -2);
     return 1;
 }
