@@ -49,7 +49,7 @@ LUA_CLIB = skynet socketdriver bson mongo md5 netpack \
   clientsocket memory profile multicast \
   cluster crypt sharedata stm sproto lpeg \
   mysqlaux debugchannel cjson webclient \
-  mt19937 snowflake
+  mt19937 snowflake lzc
 
 SKYNET_SRC = skynet_main.c skynet_handle.c skynet_module.c skynet_mq.c \
   skynet_server.c skynet_start.c skynet_timer.c skynet_error.c \
@@ -141,6 +141,9 @@ $(LUA_CLIB_PATH)/mt19937.so : lualib-src/mt19937-64/mt19937-64.c lualib-src/mt19
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
 
 $(LUA_CLIB_PATH)/snowflake.so : lualib-src/lua-snowflake.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -Iskynet-src $^ -o $@
+
+$(LUA_CLIB_PATH)/lzc.so : lualib-src/lua-lzc.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -Iskynet-src $^ -o $@
 
 clean :
