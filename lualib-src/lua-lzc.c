@@ -37,31 +37,21 @@ append(uint8_t **dst, size_t *szfree, size_t *sztotal, uint8_t *src, size_t sz) 
 
 static int 
 lcompress(lua_State *l) {
-    size_t sz = 0, ex = 0;
-    const char* ptr = luaL_checklstring(l, 1, &sz);
+    size_t sz = 0;
+    const uint8_t* ptr = (const uint8_t *)luaL_checklstring(l, 1, &sz);
     if (ptr == NULL || sz == 0) {
         return luaL_error(l, "Invalid or null string.");
     }
-    if (sz % 8 != 0) {
-        ex = 4;
-    }
-    uint8_t* origin = (uint8_t *)skynet_malloc((sz + ex) * sizeof(uint8_t));
-    if (origin == NULL) {
-        return luaL_error(l, "Not enough memory.");
-    }
-    memset(origin, 0, (sz + ex) * sizeof(uint8_t));
-    memcpy(origin, ptr, sz);
-
-    size_t idx = 0;
     uint8_t *compressed = NULL;
+    size_t idx = 0;
     size_t szfree = 0, sztotal = 0;
-    while(idx < sz + ex) {
+    while(idx < sz) {
         uint8_t mapz = 0, len = 1;
         uint8_t group[9] = { 0 };
         for (int i = 0; i < 8; ++i) {
-            if (origin[idx] != 0) {
+            if (ptr[idx] != 0) {
                 mapz |= ((1 << i) & 0xff);
-                group[len++] = origin[idx];
+                group[len++] = ptr[idx];
             }
             ++idx;
         }
@@ -71,13 +61,34 @@ lcompress(lua_State *l) {
         }
     }
     lua_pushlstring(l, (const char *)compressed, (sztotal - szfree) * sizeof(uint8_t));
-    skynet_free(origin);
     skynet_free(compressed);
     return 1;
 }
 
 static int 
 ldecompress(lua_State *l) {
+    size_t sz = 0;
+    const uint8_t* ptr = (const uint8_t *)luaL_checklstring(l, 1, &sz);
+    if (ptr == NULL || sz == 0) {
+        return luaL_error(l, "Invalid or null string.");
+    }
+    uint8_t *origin = NULL;
+    size_t idx = 0;
+    size_t szfree = 0, sztotal = 0;
+    while(idx < sz) {
+        uint8_t mapz = ptr[idx++];
+        uint8_t group[8] = { 0 };
+        for (int i = 0; i < 8; ++i) {
+            if (mapz & ((1 << i) & 0xff)) {
+                group[i] = ptr[idx++];
+            }
+        }
+        if (append(&origin, &szfree, &sztotal, (uint8_t *)group, 8)) {
+            return luaL_error(l, "Not enough memory.");
+        }
+    }
+    lua_pushlstring(l, (const char *)origin, (sztotal - szfree) * sizeof(uint8_t));
+    skynet_free(origin);
     return 1;
 }
 
