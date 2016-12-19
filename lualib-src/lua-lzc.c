@@ -48,7 +48,7 @@ lcompress(lua_State *l) {
     while(idx < sz) {
         uint8_t mapz = 0, len = 1;
         uint8_t group[9] = { 0 };
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < 8 && idx < sz; ++i) {
             if (ptr[idx] != 0) {
                 mapz |= ((1 << i) & 0xff);
                 group[len++] = ptr[idx];
@@ -78,14 +78,14 @@ ldecompress(lua_State *l) {
     while(idx < sz) {
         uint8_t mapz = ptr[idx++];
         uint8_t group[8] = { 0 };
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < 8 && idx < sz; ++i) {
             if (mapz & ((1 << i) & 0xff)) {
                 group[i] = ptr[idx++];
             }
         }
         if (append(&origin, &szfree, &sztotal, (uint8_t *)group, 8)) {
             return luaL_error(l, "Not enough memory.");
-        }
+        }             
     }
     lua_pushlstring(l, (const char *)origin, (sztotal - szfree) * sizeof(uint8_t));
     skynet_free(origin);
