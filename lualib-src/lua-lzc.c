@@ -11,6 +11,7 @@ A lua zero compress library for sproto.
 #include "skynet_malloc.h"
 
 #define INIT_BUFFER_SZ  1024
+#define GROUP_SZ        8
 
 static int
 append(uint8_t **dst, size_t *szfree, size_t *sztotal, uint8_t *src, size_t sz) {
@@ -45,10 +46,11 @@ lcompress(lua_State *l) {
     uint8_t *compressed = NULL;
     size_t idx = 0;
     size_t szfree = 0, sztotal = 0;
+    int i;
     while(idx < sz) {
         uint8_t mapz = 0, len = 1;
         uint8_t group[9] = { 0 };
-        for (int i = 0; i < 8 && idx < sz; ++i) {
+        for (i = 0; i < GROUP_SZ && idx < sz; ++i) {
             if (ptr[idx] != 0) {
                 mapz |= ((1 << i) & 0xff);
                 group[len++] = ptr[idx];
@@ -57,6 +59,13 @@ lcompress(lua_State *l) {
         }
         group[0] = mapz;
         if (append(&compressed, &szfree, &sztotal, (uint8_t *)group, len)) {
+            return luaL_error(l, "Not enough memory.");
+        }
+    }
+    // If it is an unsaturated group, then fill a byte of free size.
+    if (i < GROUP_SZ) {
+        uint8_t fill = GROUP_SZ - i;
+        if (append(&compressed, &szfree, &sztotal, &fill, 1)) {
             return luaL_error(l, "Not enough memory.");
         }
     }
@@ -77,15 +86,20 @@ ldecompress(lua_State *l) {
     size_t szfree = 0, sztotal = 0;
     while(idx < sz) {
         uint8_t mapz = ptr[idx++];
-        uint8_t group[8] = { 0 };
-        for (int i = 0; i < 8 && idx < sz; ++i) {
+        uint8_t group[GROUP_SZ] = { 0 };
+        uint8_t fill = 0;
+        for (int i = 0; i < GROUP_SZ && idx < sz; ++i) {
             if (mapz & ((1 << i) & 0xff)) {
                 group[i] = ptr[idx++];
             }
         }
-        if (append(&origin, &szfree, &sztotal, (uint8_t *)group, 8)) {
+        // To judge whether it is a unsaturated group.
+        if (idx == sz - 1 && ptr[idx] < GROUP_SZ) {
+            fill = ptr[idx++];
+        }
+        if (append(&origin, &szfree, &sztotal, (uint8_t *)group, GROUP_SZ - fill)) {
             return luaL_error(l, "Not enough memory.");
-        }             
+        }
     }
     lua_pushlstring(l, (const char *)origin, (sztotal - szfree) * sizeof(uint8_t));
     skynet_free(origin);
