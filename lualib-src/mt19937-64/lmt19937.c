@@ -46,7 +46,7 @@ lmtrandi(lua_State *L) {
 		lua_pushinteger(L, from);
 		return 1;
 	}
-	lua_pushinteger(L, genrand64_int64() % (uint64_t)(to - from) + from);
+	lua_pushinteger(L, genrand64_int63() % (to - from) + from);
 	return 1;
 }
 
