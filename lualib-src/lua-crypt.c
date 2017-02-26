@@ -953,6 +953,98 @@ lcrc32(lua_State *L) {
 	return 1;
 }
 
+// TEA Encrypt
+
+static void
+tea_encrypt(uint32_t *v, uint32_t *k) {
+	uint32_t y = v[0], z = v[1], sum = 0;
+	uint32_t delta = 0x9e3779b9;
+	for (int i = 0; i < 32; ++i) {
+		sum += delta;
+		y += ((z << 4) + k[0]) ^ (z + sum) ^ ((z >> 5) + k[1]);
+		z += ((y << 4) + k[2]) ^ (y + sum) ^ ((y >> 5) + k[3]);
+	}
+	v[0] = y;
+	v[1] = z;
+}
+
+static void
+tea_decrypt(uint32_t *v, uint32_t *k) {
+	uint32_t y = v[0], z = v[1], sum = 0xc6ef3720, i;
+	uint32_t delta = 0x9e3779b9;
+	for(i = 0; i < 32; ++i) {
+		z -= ((y << 4) + k[2]) ^ (y + sum) ^ ((y >> 5) + k[3]);
+		y -= ((z << 4) + k[0]) ^ (z + sum) ^ ((z >> 5) + k[1]);
+		sum -= delta;
+	}
+	v[0] = y;
+	v[1] = z;
+}
+
+int
+lteaencode(lua_State *L) {
+	size_t keysz, textsz;
+	const uint8_t *key = (const uint8_t *)luaL_checklstring(L, 1, &keysz);
+	const uint8_t *text = (const uint8_t *)luaL_checklstring(L, 2, &textsz);
+	if (keysz != 16) {
+		return luaL_error(L, "TEA key must be 16 bytes.");
+	}
+	if (textsz == 0) {
+		return luaL_error(L, "TEA can't encode empty string.");
+	}
+	uint8_t paddingsz = 8 - textsz % 8; // PKCS7 padding
+	int len = textsz + paddingsz;
+	uint8_t tmp[SMALL_CHUNK];
+	uint8_t *buffer = tmp;
+	if (len > SMALL_CHUNK) {
+		buffer = lua_newuserdata(L, len);
+	}
+	memcpy(buffer, text, textsz);
+	for (int i = 0; i < paddingsz; ++i) {
+		buffer[textsz + i] = paddingsz;
+	}
+	int n = len / 8;
+	for (int i = 0; i < n; ++i) {
+		tea_encrypt((uint32_t *)(buffer + i * 8), (uint32_t *)key);
+	}
+	lua_pushlstring(L, (char *)buffer, len);
+	
+	return 1;
+}
+
+int
+lteadecode(lua_State *L) {
+	size_t keysz, textsz;
+	const uint8_t *key = (const uint8_t *)luaL_checklstring(L, 1, &keysz);
+	const uint8_t *text = (const uint8_t *)luaL_checklstring(L, 2, &textsz);
+	if (keysz != 16) {
+		return luaL_error(L, "TEA key must be 16 bytes.");
+	}
+	if (textsz == 0) {
+		return luaL_error(L, "TEA can't decode empty string.");
+	}
+	uint8_t tmp[SMALL_CHUNK];
+	uint8_t *buffer = tmp;
+	if (textsz > SMALL_CHUNK) {
+		buffer = lua_newuserdata(L, textsz);
+	}
+	memcpy(buffer, text, textsz);
+	int n = textsz / 8;
+	for (int i = 0; i < n; ++i) {
+		tea_decrypt((uint32_t *)(buffer + i * 8), (uint32_t *)key);
+	}
+	uint8_t paddingsz = buffer[textsz - 1];
+	if (paddingsz >= 1 && paddingsz <= 8) {
+		textsz -= paddingsz;
+	}
+	else {
+		return luaL_error(L, "TEA PKCS7 padding error.");
+	}
+	lua_pushlstring(L, (char *)buffer, textsz);
+	
+	return 1;
+}
+
 // defined in lsha1.c
 int lsha1(lua_State *L);
 int lhmac_sha1(lua_State *L);
@@ -983,6 +1075,8 @@ luaopen_crypt(lua_State *L) {
 		{ "hmac_hash", lhmac_hash },
 		{ "xor_str", lxor_str },
 		{ "crc32", lcrc32 },
+		{ "teaencode", lteaencode },
+		{ "teadecode", lteadecode },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);
