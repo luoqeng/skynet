@@ -107,7 +107,7 @@ lunpack(lua_State *l) {
 }
 
 int 
-luaopen_lzc(lua_State *l) {
+luaopen_zeropack(lua_State *l) {
     luaL_checkversion(l);
     luaL_Reg lib[] = {
         { "pack", lpack },
