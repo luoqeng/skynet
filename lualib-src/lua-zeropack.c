@@ -1,6 +1,6 @@
 /*
-lua-lzc.c
-A lua zero compress library for sproto.
+    lua-zeropack.c
+    Pack 0 in binaries.
 */
 
 #include <string.h>
@@ -37,13 +37,13 @@ append(uint8_t **dst, size_t *szfree, size_t *sztotal, uint8_t *src, size_t sz) 
 }
 
 static int 
-lcompress(lua_State *l) {
+lpack(lua_State *l) {
     size_t sz = 0;
     const uint8_t* ptr = (const uint8_t *)luaL_checklstring(l, 1, &sz);
     if (ptr == NULL || sz == 0) {
         return luaL_error(l, "Invalid or null string.");
     }
-    uint8_t *compressed = NULL;
+    uint8_t *packed = NULL;
     size_t idx = 0;
     size_t szfree = 0, sztotal = 0;
     int i;
@@ -58,24 +58,24 @@ lcompress(lua_State *l) {
             ++idx;
         }
         group[0] = mapz;
-        if (append(&compressed, &szfree, &sztotal, (uint8_t *)group, len)) {
+        if (append(&packed, &szfree, &sztotal, (uint8_t *)group, len)) {
             return luaL_error(l, "Not enough memory.");
         }
     }
     // If it is an unsaturated group, then fill a byte of free size.
     if (i < GROUP_SZ) {
         uint8_t fill = GROUP_SZ - i;
-        if (append(&compressed, &szfree, &sztotal, &fill, 1)) {
+        if (append(&packed, &szfree, &sztotal, &fill, 1)) {
             return luaL_error(l, "Not enough memory.");
         }
     }
-    lua_pushlstring(l, (const char *)compressed, (sztotal - szfree) * sizeof(uint8_t));
-    skynet_free(compressed);
+    lua_pushlstring(l, (const char *)packed, (sztotal - szfree) * sizeof(uint8_t));
+    skynet_free(packed);
     return 1;
 }
 
 static int 
-ldecompress(lua_State *l) {
+lunpack(lua_State *l) {
     size_t sz = 0;
     const uint8_t* ptr = (const uint8_t *)luaL_checklstring(l, 1, &sz);
     if (ptr == NULL || sz == 0) {
@@ -110,8 +110,8 @@ int
 luaopen_lzc(lua_State *l) {
     luaL_checkversion(l);
     luaL_Reg lib[] = {
-        { "compress", lcompress },
-        { "decompress", ldecompress },
+        { "pack", lpack },
+        { "unpack", lunpack },
         { NULL, NULL }
     };
     luaL_newlib(l, lib);
