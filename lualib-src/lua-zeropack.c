@@ -3,6 +3,8 @@
     Pack 0 in binaries.
 */
 
+#define LUA_LIB
+
 #include <string.h>
 #include <stdint.h>
 
@@ -106,7 +108,7 @@ lunpack(lua_State *l) {
     return 1;
 }
 
-int 
+LUAMOD_API int 
 luaopen_zeropack(lua_State *l) {
     luaL_checkversion(l);
     luaL_Reg lib[] = {

@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include <stdint.h>
 #include <pthread.h>
 #include <time.h>
@@ -104,7 +106,7 @@ lnextid(lua_State* l) {
     return 1;
 }
 
-int
+LUAMOD_API int
 luaopen_snowflake(lua_State* l) {
     luaL_checkversion(l);
     luaL_Reg lib[] = {

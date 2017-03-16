@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include <stdlib.h>
 #include "lua.h"
 #include "lauxlib.h"
@@ -56,7 +58,7 @@ lmtrandr(lua_State *L) {
 	return 1;
 }
 
-int
+LUAMOD_API int
 luaopen_mt19937(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {

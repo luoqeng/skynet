@@ -3,6 +3,8 @@
  *  date: 2014-06-03 20:38
  */
 
+#define LUA_LIB 
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -178,7 +180,8 @@ _release(lua_State *L) {
     return 0;
 }
 
-int luaopen_skiplist_c(lua_State *L) {
+LUAMOD_API int 
+luaopen_skiplist_c(lua_State *L) {
     luaL_checkversion(L);
 
     luaL_Reg l[] = {

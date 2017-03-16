@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
+#define LUA_LIB
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -353,7 +355,7 @@ luaL_Reg webclient_funs[] = {
     { NULL, NULL }
 };
 
-int luaopen_webclient(lua_State * L)
+LUAMOD_API int luaopen_webclient(lua_State * L)
 {
     luaL_checkversion(L);
     if (luaL_newmetatable(L, LUA_WEB_CLIENT_MT))
