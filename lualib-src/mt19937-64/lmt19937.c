@@ -21,7 +21,8 @@ lmtinit(lua_State *L) {
 			lua_pushstring(L, "init error, not enough memory.");
 			return 2;
 		}
-		for (int i = 0; i < args; ++i) {
+		int i;
+		for (i = 0; i < args; ++i) {
 			array[i] = luaL_checkinteger(L, i + 1);
 		}
 		init_by_array64(array, args);

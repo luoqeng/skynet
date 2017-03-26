@@ -90,7 +90,8 @@ lunpack(lua_State *l) {
         uint8_t mapz = ptr[idx++];
         uint8_t group[GROUP_SZ] = { 0 };
         uint8_t fill = 0;
-        for (int i = 0; i < GROUP_SZ && idx < sz; ++i) {
+        int i;
+        for (i = 0; i < GROUP_SZ && idx < sz; ++i) {
             if (mapz & ((1 << i) & 0xff)) {
                 group[i] = ptr[idx++];
             }

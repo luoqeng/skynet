@@ -940,7 +940,8 @@ static uint32_t
 crc32_calc(const uint8_t *data, size_t sz) {
 	uint32_t crc32 = 0xffffffff;
 	const uint8_t *p = data;
-	for (size_t i = 0; i < sz; ++i) {
+	size_t i;
+	for (i = 0; i < sz; ++i) {
 		crc32 = crc32tbl[(crc32 ^ (uint32_t)*p++) & 0xff] ^ ((crc32 >> 8) & 0x00ffffff);
 	}
 	return crc32 ^ 0xffffffff;
@@ -961,7 +962,8 @@ static void
 tea_encrypt(uint32_t *v, uint32_t *k) {
 	uint32_t y = v[0], z = v[1], sum = 0;
 	uint32_t delta = 0x9e3779b9;
-	for (int i = 0; i < 32; ++i) {
+	int i;
+	for (i = 0; i < 32; ++i) {
 		sum += delta;
 		y += ((z << 4) + k[0]) ^ (z + sum) ^ ((z >> 5) + k[1]);
 		z += ((y << 4) + k[2]) ^ (y + sum) ^ ((y >> 5) + k[3]);
@@ -1002,11 +1004,12 @@ lteaencode(lua_State *L) {
 		buffer = lua_newuserdata(L, len);
 	}
 	memcpy(buffer, text, textsz);
-	for (int i = 0; i < paddingsz; ++i) {
+	int i;
+	for (i = 0; i < paddingsz; ++i) {
 		buffer[textsz + i] = paddingsz;
 	}
 	int n = len / 8;
-	for (int i = 0; i < n; ++i) {
+	for (i = 0; i < n; ++i) {
 		tea_encrypt((uint32_t *)(buffer + i * 8), (uint32_t *)key);
 	}
 	lua_pushlstring(L, (char *)buffer, len);
@@ -1032,7 +1035,8 @@ lteadecode(lua_State *L) {
 	}
 	memcpy(buffer, text, textsz);
 	int n = textsz / 8;
-	for (int i = 0; i < n; ++i) {
+	int i;
+	for (i = 0; i < n; ++i) {
 		tea_decrypt((uint32_t *)(buffer + i * 8), (uint32_t *)key);
 	}
 	uint8_t paddingsz = buffer[textsz - 1];
