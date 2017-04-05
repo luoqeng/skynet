@@ -64,10 +64,10 @@ lpack(lua_State *l) {
             return luaL_error(l, "Not enough memory.");
         }
     }
-    // If it is an unsaturated group, then fill a byte of free size.
+    // If it is an unsaturated group, then fill a byte of padding.
     if (i < GROUP_SZ) {
-        uint8_t fill = GROUP_SZ - i;
-        if (append(&packed, &szfree, &sztotal, &fill, 1)) {
+        uint8_t padding = GROUP_SZ - i;
+        if (append(&packed, &szfree, &sztotal, &padding, 1)) {
             return luaL_error(l, "Not enough memory.");
         }
     }
@@ -89,7 +89,7 @@ lunpack(lua_State *l) {
     while(idx < sz) {
         uint8_t mapz = ptr[idx++];
         uint8_t group[GROUP_SZ] = { 0 };
-        uint8_t fill = 0;
+        uint8_t padding = 0;
         int i;
         for (i = 0; i < GROUP_SZ && idx < sz; ++i) {
             if (mapz & ((1 << i) & 0xff)) {
@@ -98,9 +98,9 @@ lunpack(lua_State *l) {
         }
         // To judge whether it is a unsaturated group.
         if (idx == sz - 1 && ptr[idx] < GROUP_SZ) {
-            fill = ptr[idx++];
+            padding = ptr[idx++];
         }
-        if (append(&origin, &szfree, &sztotal, (uint8_t *)group, GROUP_SZ - fill)) {
+        if (append(&origin, &szfree, &sztotal, (uint8_t *)group, GROUP_SZ - padding)) {
             return luaL_error(l, "Not enough memory.");
         }
     }
