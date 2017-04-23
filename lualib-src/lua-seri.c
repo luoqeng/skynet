@@ -24,6 +24,7 @@
 #define TYPE_NUMBER_DWORD 4
 #define TYPE_NUMBER_QWORD 6
 #define TYPE_NUMBER_REAL 8
+#define TYPE_FUNCTION 9
 
 #define TYPE_USERDATA 3
 #define TYPE_SHORT_STRING 4
@@ -136,6 +137,12 @@ wb_nil(struct write_block *wb) {
 static inline void
 wb_boolean(struct write_block *wb, int boolean) {
 	uint8_t n = COMBINE_TYPE(TYPE_BOOLEAN , boolean ? 1 : 0);
+	wb_push(wb, &n, 1);
+}
+
+static inline void
+wb_function(struct write_block *wb) {
+	uint8_t n = TYPE_FUNCTION;
 	wb_push(wb, &n, 1);
 }
 
@@ -333,6 +340,10 @@ pack_one(lua_State *L, struct write_block *b, int index, int depth) {
 		wb_table(L, b, index, depth+1);
 		break;
 	}
+	case LUA_TFUNCTION: {
+		wb_function(b);
+		break;
+	}
 	default:
 		wb_free(b);
 		luaL_error(L, "Unsupport type %s to serialize", lua_typename(L, type));
@@ -511,6 +522,9 @@ push_value(lua_State *L, struct read_block *rb, int type, int cookie) {
 	}
 	case TYPE_TABLE: {
 		unpack_table(L,rb,cookie);
+		break;
+	}
+	case TYPE_FUNCTION: {
 		break;
 	}
 	default: {
