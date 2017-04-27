@@ -23,8 +23,8 @@
 #define TYPE_NUMBER_WORD 2
 #define TYPE_NUMBER_DWORD 4
 #define TYPE_NUMBER_QWORD 6
+#define TYPE_FUNCTION 7
 #define TYPE_NUMBER_REAL 8
-#define TYPE_FUNCTION 9
 
 #define TYPE_USERDATA 3
 #define TYPE_SHORT_STRING 4
@@ -525,6 +525,7 @@ push_value(lua_State *L, struct read_block *rb, int type, int cookie) {
 		break;
 	}
 	case TYPE_FUNCTION: {
+		lua_pushnil(L);
 		break;
 	}
 	default: {
