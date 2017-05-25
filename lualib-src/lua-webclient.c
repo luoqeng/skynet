@@ -57,6 +57,10 @@ struct webrequest
 
 static int webclient_create(lua_State* l)
 {
+    curl_version_info_data* data = curl_version_info(CURLVERSION_NOW);
+    if (data->version_num < 0x070f04)
+        return luaL_error(l, "requires 7.15.4 or higher curl, current version is %s", data->version);
+
     curl_global_init(CURL_GLOBAL_ALL);
     CURLM* curlm = curl_multi_init();
     if (!curlm) {

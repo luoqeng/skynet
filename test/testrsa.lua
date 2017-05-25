@@ -2,37 +2,52 @@ local skynet = require "skynet"
 local crypt = require "crypt"
 
 
-local src = '123456'
+local src = "hello world !"
 
-local privpem = [[-----BEGIN RSA PRIVATE KEY-----
-MIICXAIBAAKBgQCsxjKD2lnmkmELoo5QphM/VdREJKym26R0T+19JDa3MVZFDbwg
-UGT8XM8bElrKgxexhTVRt07btyIejdbiPx7sCbWcVP8peZI+QZEVVzaE2Ci5n0lP
-9v9GUSl0QfZU94uIwl++BVq0VFvbHax/R/q4oTRD1u73ASM27QW42+cJFwIDAQAB
-AoGALHoNMQI52HBgSSV8q2hFVi2bKjuisoWibUrSIT/8UeaChd5GSq9Hf+vIaPit
-pKpgpBNdqX6d71PSlbj/01hadg5IxrGWQZWzT/3IzuhTxAu4TkztUJelGRcM6ykZ
-5AxijiIxTLWSY/ygtEaM2QShhl8dCReNT+oIDGf/iMSTVykCQQDl07WZR9ATReVc
-vM7/v9iiz/g1Tj9/8AOuyYOZ5kp5a8IAr48dXixzuTZY66RwPj/J5vrzLuHc7Uc0
-RAi4hgmTAkEAwHMxP0KVOzDH49SsiUjfOycqrBl68QCXUWQj2mi7Bb1pLryoYDFv
-FTuk6pxKyfr5O8M2s8thTz6f3EO7hFqk7QJAdX8Ly2ZkYUYNoaDBbwzEk1AhhBcR
-7bVmHJjXV/ndP0Aw+arHTutTbIJW35TxB5U7hVw6FdN1Ez6XdYgGsVeNUwJAEjlW
-SoVFmGtQInT7Oaza5sEYu19WUwgZTC3Nb1tHio2bLj/TOfi0ajBRt53BP0sy2sPr
-pC74MgbeIH+RfEERKQJBAIpPkQztkbpZwD9gDiK86U+HHYZrhglxgfDIXYwTH3z/
-KCrfyNxiH2im9ZhwuhLs7LDD7wDPHUC5BItx2tYN10s=
------END RSA PRIVATE KEY-----]]
+local privpem = [[-----BEGIN PRIVATE KEY-----
+MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANMfFz1aPEuvl/AN
+0lVNXoMGoRrUPfmHtKtUfpaM7vxPXtYzHsBzu6KLOBDeOjXO9YD43vLIRpZwO0r4
+kWLMYGSZMxSQba7itQ5H6kDc2dm7UQqsJ34wupejGADd2iEOBappvXH7LEaGhjvs
+W1ZOZi1r5or0HXqRNkWIGvU8YYWpAgMBAAECgYA+wMcPnXq+pHrtB661XEHzgEzy
+xJOHUCcLphnadhmzNYRi9t71JXFoZylLGkMDK3kd1NuwHoecv89gAXJ1g3pC4mW+
+D9xZluFre2qlYs+nn0nE1cNJ+ogqkjQ76XuV/9IuZSSPCxRJ6W4EaR3rQi/ORK/o
+KOKucP4kFTJTMQrwYQJBAO6xYGrfiRSQkQKj0dR2at29t5gRJ5FU6XzVsy1WAN3G
+goSqOVBYCAL2IF8jHbt5dvX1QKzAKX44vBSmCs6/B5sCQQDibe68z4WKFOYGbg75
+ZKmmJuCzDCTRaZu4ThpqFVJlwdw1JeFOX3r+4qpwfNDOSOinzL7BmO+sHBBmBUJG
+jLYLAkEA7ZFFcZmCiiFI8uOx2FD0FDbbIFMSmqd0rHbVmu3aduE4zmnOGZVEhA4M
+MiR1Vz6RlEPBVy77HVHCgJqybwvauQJBAJQ9WKFwU4MVL4tiHpeUGaVXqqBOAQTA
+2VwOdiihkPJhuuNoy1reE84vY1qFvMZw4TCKURC6KZ9KOEoygzNhCAUCQQDsOp9u
+EL2lf9pph/xpdMlIk4s1f6cJ19YTOq/F9Bdk6Ilok23yuuynDnV31LLG1wEscn/n
+jyiiuJjC1pbr+LLV
+-----END PRIVATE KEY-----]]
+
 
 local pubpem = [[-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCsxjKD2lnmkmELoo5QphM/VdRE
-JKym26R0T+19JDa3MVZFDbwgUGT8XM8bElrKgxexhTVRt07btyIejdbiPx7sCbWc
-VP8peZI+QZEVVzaE2Ci5n0lP9v9GUSl0QfZU94uIwl++BVq0VFvbHax/R/q4oTRD
-1u73ASM27QW42+cJFwIDAQAB
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTHxc9WjxLr5fwDdJVTV6DBqEa
+1D35h7SrVH6WjO78T17WMx7Ac7uiizgQ3jo1zvWA+N7yyEaWcDtK+JFizGBkmTMU
+kG2u4rUOR+pA3NnZu1EKrCd+MLqXoxgA3dohDgWqab1x+yxGhoY77FtWTmYta+aK
+9B16kTZFiBr1PGGFqQIDAQAB
 -----END PUBLIC KEY-----]]
 
 
 skynet.start(function()
     local bs = crypt.rsaprisign(src, privpem)
     local sign = crypt.base64encode(bs)
+    print("----- RSA SIGN TEST -----")
     print(sign)
     local dbs = crypt.base64decode(sign)
     local ok = crypt.rsapubverify(src, dbs, pubpem, 2)
-    print("verify ok.")
+    assert(ok)
+    print("----- RSA SIGN TEST OK -----\n")
+
+    print("----- RSA CRYPT TEST -----")
+    bs = crypt.rsapubenc(src, pubpem, 2)
+    local dst = crypt.base64encode(bs)
+    print(dst)
+    dbs = crypt.base64decode(dst)
+    local dsrc = crypt.rsapridec(dbs, privpem)
+    print(dsrc)
+    assert(dsrc == src)
+    print("----- RSA CRYPT TEST OK -----\n")
+    skynet.exit()
 end)
