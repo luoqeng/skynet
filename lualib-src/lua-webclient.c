@@ -411,7 +411,7 @@ luaL_Reg webclient_funs[] = {
     { NULL, NULL }
 };
 
-LUAMOD_API int luaopen_webclient(lua_State * L)
+LUAMOD_API int luaopen_external_webclient(lua_State * L)
 {
     luaL_checkversion(L);
     if (luaL_newmetatable(L, LUA_WEB_CLIENT_MT))

@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local mt19937 = require "mt19937"
+local mt19937 = require "external.mt19937"
 
 
 skynet.start(function()
