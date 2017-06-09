@@ -59,7 +59,8 @@ LUA_CLIB_SKYNET = \
   lua-profile.c \
   lua-multicast.c \
   lua-cluster.c \
-  lua-crypt.c lsha1.c \
+  lua-crypt.c \
+  lsha1.c \
   lua-sharedata.c \
   lua-stm.c \
   lua-mysqlaux.c \
@@ -94,7 +95,7 @@ endef
 $(foreach v, $(CSERVICE), $(eval $(call CSERVICE_TEMP,$(v))))
 
 $(LUA_CLIB_PATH)/skynet.so : $(addprefix lualib-src/,$(LUA_CLIB_SKYNET)) | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -Iskynet-src -Iservice-src -Ilualib-src
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -Iskynet-src -Iservice-src -Ilualib-src -lssl
 
 $(LUA_CLIB_PATH)/bson.so : lualib-src/lua-bson.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -Iskynet-src $^ -o $@ -Iskynet-src
