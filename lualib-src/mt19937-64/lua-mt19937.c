@@ -60,7 +60,7 @@ lmtrandr(lua_State *L) {
 }
 
 LUAMOD_API int
-luaopen_external_mt19937(lua_State *L) {
+luaopen_extlib_mt19937(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
 		{ "init", lmtinit },
