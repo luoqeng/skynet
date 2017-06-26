@@ -1163,7 +1163,6 @@ l_rsa_public_verify(lua_State *L) {
 	const char *src = luaL_checklstring(L, 1, &srclen);
 	const char *sign = luaL_checklstring(L, 2, &signlen);
 	const char *pem = luaL_checkstring(L, 3);
-	int type = luaL_checkinteger(L, 4);
 
 	SHA_CTX ctx;
 	int ctxlen = sizeof(ctx);
@@ -1188,7 +1187,7 @@ l_rsa_public_verify(lua_State *L) {
 		BIO_free_all(bio);
 		return luaL_error(L, "PEM error");
 	}
-	RSA *rsa = type == 1 ? PEM_read_bio_RSAPublicKey(bio, NULL, NULL, NULL) : PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
+	RSA *rsa = PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
 	if (rsa == NULL) {
 		BIO_free_all(bio);
 		return luaL_error(L, "RSA read public key error");
@@ -1207,14 +1206,13 @@ l_rsa_public_encrypt(lua_State *L) {
 	size_t len;
 	const char *src = luaL_checklstring(L, 1, &len);
 	const char *pem = luaL_checkstring(L, 2);
-	int type = luaL_checkinteger(L, 3);
 
 	BIO *bio = BIO_new_mem_buf((void *)pem, -1);
 	if (bio == NULL) {
 		BIO_free_all(bio);
 		return luaL_error(L, "PEM error");
 	}
-	RSA *rsa = type == 1 ? PEM_read_bio_RSAPublicKey(bio, NULL, NULL, NULL) : PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
+	RSA *rsa = PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
 	if (rsa == NULL) {
 		BIO_free_all(bio);
 		return luaL_error(L, "RSA read public key error");
@@ -1270,6 +1268,73 @@ l_rsa_private_decrypt(lua_State *L) {
 	return 1;
 }
 
+static int
+l_rsa_private_encrypt(lua_State *L) {
+	size_t len;
+	const char *src = luaL_checklstring(L, 1, &len);
+	const char *pem = luaL_checkstring(L, 2);
+
+	BIO *bio = BIO_new_mem_buf((void *)pem, -1);
+	if (bio == NULL) {
+		BIO_free_all(bio);
+		return luaL_error(L, "PEM error");
+	}
+	RSA *rsa = PEM_read_bio_RSAPrivateKey(bio, NULL, NULL, NULL);
+	if (rsa == NULL) {
+		BIO_free_all(bio);
+		return luaL_error(L, "RSA read private key error");
+	}
+	BIO_free_all(bio);
+
+	int n = RSA_size(rsa);
+	char dst[n];
+	memset(dst, 0, n);
+
+	int ret = RSA_private_encrypt(len, (unsigned char *)src, (unsigned char *)dst, rsa, RSA_PKCS1_PADDING);
+	if (ret != n) {
+		RSA_free(rsa);
+		BIO_free_all(bio);
+		return luaL_error(L, "RSA private encrypt error");
+	}
+	RSA_free(rsa);
+
+	lua_pushlstring(L, dst, n);
+	return 1;
+}
+
+static int 
+l_rsa_public_decrypt(lua_State *L) {
+	const char *src = luaL_checkstring(L, 1);
+	const char *pem = luaL_checkstring(L, 2);
+
+	BIO *bio = BIO_new_mem_buf((void *)pem, -1);
+	if (bio == NULL) {
+		BIO_free_all(bio);
+		return luaL_error(L, "PEM error");
+	}
+	RSA *rsa = PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
+	if (rsa == NULL) {
+		BIO_free_all(bio);
+		return luaL_error(L, "RSA read public key error");
+	}
+	BIO_free_all(bio);
+
+	int n = RSA_size(rsa);
+	char dst[n];
+	memset(dst, 0, n);
+
+	int ret = RSA_public_decrypt(n, (unsigned char *)src, (unsigned char *)dst, rsa, RSA_PKCS1_PADDING);
+	if (ret <= 0) {
+		RSA_free(rsa);
+		BIO_free_all(bio);
+		return luaL_error(L, "RSA public decrypt error");
+	}
+	RSA_free(rsa);
+
+	lua_pushlstring(L, dst, ret);
+	return 1;
+}
+
 // defined in lsha1.c
 int lsha1(lua_State *L);
 int lhmac_sha1(lua_State *L);
@@ -1307,6 +1372,8 @@ luaopen_skynet_crypt(lua_State *L) {
 		{ "rsapubverify", l_rsa_public_verify },
 		{ "rsapubenc", l_rsa_public_encrypt },
 		{ "rsapridec", l_rsa_private_decrypt },
+		{ "rsaprienc", l_rsa_private_encrypt },
+		{ "rsapubdec", l_rsa_public_decrypt },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);
