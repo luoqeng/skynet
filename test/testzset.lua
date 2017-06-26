@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local zset = require "extlib.zset"
+local zset = require "zset"
 
 local function random_choose(t)
     if #t == 0 then

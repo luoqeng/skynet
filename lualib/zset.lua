@@ -1,4 +1,4 @@
-local skiplist = require "external.skiplist.c"
+local skiplist = require "extlib.skiplist"
 
 local mt = {}
 mt.__index = mt
