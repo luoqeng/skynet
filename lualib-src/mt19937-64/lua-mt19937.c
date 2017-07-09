@@ -1,16 +1,20 @@
 #define LUA_LIB
 
 #include <stdlib.h>
-#include "lua.h"
-#include "lauxlib.h"
+#include <lua.h>
+#include <lauxlib.h>
 #include "mt64.h"
+#include "spinlock.h"
 
-static int g_inited = 0;
+static volatile int g_inited = 0;
+static struct spinlock sync_policy;
 
 static int
 lmtinit(lua_State *L) {
+	spinlock_lock(&sync_policy);
 	if (g_inited) {
 		lua_pushboolean(L, 1);
+		spinlock_unlock(&sync_policy);
 		return 1;
 	}
     int args = lua_gettop(L);
@@ -19,6 +23,7 @@ lmtinit(lua_State *L) {
 		if (!array) {
 			lua_pushboolean(L, 0);
 			lua_pushstring(L, "init error, not enough memory.");
+			spinlock_unlock(&sync_policy);
 			return 2;
 		}
 		int i;
@@ -28,10 +33,12 @@ lmtinit(lua_State *L) {
 		init_by_array64(array, args);
 		free(array);
     } else {
+		spinlock_unlock(&sync_policy);
         return luaL_error(L, "mt19937.init need one or more seeds.");
     }
 	g_inited = 1;
 	lua_pushboolean(L, 1);
+	spinlock_unlock(&sync_policy);
 	return 1;
 }
 
@@ -41,26 +48,31 @@ lmtrandi(lua_State *L) {
 	if (args < 2) {
 		return luaL_error(L, "mt19937.randi need 2 numbers for a range.");
 	}
+	spinlock_lock(&sync_policy);
 	lua_Integer a = luaL_checkinteger(L, 1);
 	lua_Integer b = luaL_checkinteger(L, 2);
 	lua_Integer from = a < b ? a : b;
 	lua_Integer to = a > b ? a : b;
 	if (from == to) {
 		lua_pushinteger(L, from);
-		return 1;
+	} else {
+		lua_pushinteger(L, genrand64_int63() % (to - from) + from);
 	}
-	lua_pushinteger(L, genrand64_int63() % (to - from) + from);
+	spinlock_unlock(&sync_policy);
 	return 1;
 }
 
 static int
 lmtrandr(lua_State *L) {
+	spinlock_lock(&sync_policy);
 	lua_pushnumber(L, (lua_Number)genrand64_real2());
+	spinlock_unlock(&sync_policy);
 	return 1;
 }
 
 LUAMOD_API int
 luaopen_extlib_mt19937(lua_State *L) {
+	spinlock_init(&sync_policy);
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
 		{ "init", lmtinit },

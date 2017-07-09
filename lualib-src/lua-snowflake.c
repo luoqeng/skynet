@@ -13,9 +13,6 @@
 #define MAX_WORKID_VAL      0x03ff
 #define MAX_TIMESTAMP_VAL   0x01ffffffffff
 
-#define __atomic_read(var)        __sync_fetch_and_add(&(var), 0)
-#define __atomic_set(var, val)    __sync_lock_test_and_set(&(var), (val))
-
 typedef struct _t_ctx {
     int64_t last_timestamp;
     int32_t work_id;
@@ -45,10 +42,11 @@ wait_next_msec() {
 
 static uint64_t
 next_id() {
-    if (!__atomic_read(g_inited)) {
+    spinlock_lock(&sync_policy);
+    if (!g_inited) {
+        spinlock_unlock(&sync_policy);
         return -1;
     }
-    spinlock_lock(&sync_policy);
     int64_t current_timestamp = get_timestamp();
     if (current_timestamp == g_ctx.last_timestamp) {
         if (g_ctx.index < MAX_INDEX_VAL) {
@@ -71,13 +69,14 @@ next_id() {
 
 static int
 init(uint16_t work_id) {
-    if (__atomic_read(g_inited)) {
+    spinlock_lock(&sync_policy);
+    if (g_inited) {
+        spinlock_unlock(&sync_policy);
         return 0;
     }
-    spinlock_lock(&sync_policy);
     g_ctx.work_id = work_id;
     g_ctx.index = 0;
-    __atomic_set(g_inited, 1);
+    g_inited = 1;
     spinlock_unlock(&sync_policy);
     return 0;
 }
@@ -93,7 +92,7 @@ linit(lua_State* l) {
         work_id = (int16_t)id;
     }
     if (init(work_id)) {
-        return luaL_error(l, "Init instance error, not enough memory.");
+        return luaL_error(l, "Snowflake has been initialized.");
     }
     lua_pushboolean(l, 1);
     return 1;
@@ -108,6 +107,7 @@ lnextid(lua_State* l) {
 
 LUAMOD_API int
 luaopen_extlib_snowflake(lua_State* l) {
+    spinlock_init(&sync_policy);
     luaL_checkversion(l);
     luaL_Reg lib[] = {
         { "init", linit },
