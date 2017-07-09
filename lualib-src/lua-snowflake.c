@@ -21,13 +21,13 @@ typedef struct _t_ctx {
 
 static volatile int g_inited = 0;
 static ctx_t g_ctx = { 0, 0, 0 };
-static struct spinlock sync_policy = { 0 };
+static struct spinlock sync_policy;
 
 static int64_t
 get_timestamp() {
-	struct timeval tv;
-	gettimeofday(&tv, 0);
-	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 static void
