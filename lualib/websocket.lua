@@ -1,6 +1,6 @@
 -- websocket.lua
 -- Modified by korialuo. "https://github.com/korialuo/skynet/blob/master/lualib/websocket.lua"
--- This file is modified version from from "https://github.com/Skycrab/skynet_websocket"
+-- This file is a modified version from "https://github.com/Skycrab/skynet_websocket"
 
 local crypt = require "skynet.crypt"
 local socket = require "skynet.socket"
