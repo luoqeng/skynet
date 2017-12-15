@@ -10,4 +10,5 @@
 *.dSYM
 .DS_Store
 /.idea
+/.vscode
 skynet.iml
